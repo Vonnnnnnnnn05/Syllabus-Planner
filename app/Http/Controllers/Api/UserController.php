@@ -15,7 +15,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $authUser = $request->user();
-        $query = User::with('department');
+        $query = User::with('department')->whereIn('role', ['Admin', 'Teacher']);
 
         if ($this->isTeacher($authUser)) {
             $query->where('id', $authUser->id);
@@ -39,6 +39,17 @@ class UserController extends Controller
         return response()->json($query->get());
     }
 
+    public function teachers()
+    {
+        return response()->json(
+            User::query()
+                ->where('role', 'Teacher')
+                ->where('status', 'Active')
+                ->orderBy('full_name')
+                ->get(['id', 'name', 'full_name', 'email'])
+        );
+    }
+
     public function store(Request $request)
     {
         abort_unless($this->canManageUsers($request->user()), 403, 'You are not allowed to create users.');
@@ -49,7 +60,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6',
             'department_id' => 'nullable|integer',
-            'role' => 'string|max:30',
+            'role' => 'required|in:Admin,Teacher',
             'avatar' => 'nullable|string|max:10',
             'status' => 'string|max:20',
         ]);
@@ -73,16 +84,17 @@ class UserController extends Controller
             'full_name' => 'nullable|string',
             'email' => 'sometimes|email|unique:users,email,' . $id,
             'department_id' => 'nullable|integer',
-            'role' => 'sometimes|string|max:30',
+            'role' => 'sometimes|in:Admin,Teacher',
             'avatar' => 'nullable|string|max:10',
             'status' => 'sometimes|string|max:20',
+            'password' => 'nullable|string|min:6',
         ]);
 
         if (! $this->canManageUsers($authUser)) {
             unset($validated['role'], $validated['department_id'], $validated['status']);
         }
 
-        if ($request->has('password')) {
+        if ($request->filled('password')) {
             $validated['password'] = Hash::make($request->password);
         }
 

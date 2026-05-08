@@ -136,9 +136,7 @@ class CourseSeeder extends Seeder
             'status' => 'Published',
             'version' => 3,
             'submitted_at' => now()->subDays(30),
-            'reviewed_by' => 'Rubin B. Cerilo',
-            'approved_by' => 'Elbren O. Antonio',
-            'notes' => 'Approved with minor formatting changes.',
+            'notes' => 'Ready for class use.',
         ]);
 
         // Other demo courses

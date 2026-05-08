@@ -46,6 +46,7 @@ export const courseApi = {
   get: (id: string) => api.get(`/courses/${id}`),
   create: (data: Record<string, unknown>) => api.post('/courses', data),
   update: (id: string, data: Record<string, unknown>) => api.put(`/courses/${id}`, data),
+  share: (id: string, teacherId: string) => api.put(`/courses/${id}/share`, { teacher_id: teacherId }),
   delete: (id: string) => api.delete(`/courses/${id}`),
 }
 
@@ -83,6 +84,7 @@ export const departmentApi = {
 
 export const userApi = {
   list: () => api.get('/users'),
+  teachers: () => api.get('/teachers'),
   create: (data: Record<string, unknown>) => api.post('/users', data),
   update: (id: string, data: Record<string, unknown>) => api.put(`/users/${id}`, data),
   delete: (id: string) => api.delete(`/users/${id}`),

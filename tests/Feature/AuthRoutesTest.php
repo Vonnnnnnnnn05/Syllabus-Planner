@@ -61,8 +61,8 @@ class AuthRoutesTest extends TestCase
     public function test_me_returns_current_user_for_authenticated_request(): void
     {
         $user = User::factory()->create([
-            'full_name' => 'Dean User',
-            'role' => 'Dean',
+            'full_name' => 'Teacher User',
+            'role' => 'Teacher',
             'status' => 'Active',
         ]);
 
@@ -72,7 +72,7 @@ class AuthRoutesTest extends TestCase
             ->assertOk()
             ->assertJsonPath('id', $user->id)
             ->assertJsonPath('email', $user->email)
-            ->assertJsonPath('role', 'Dean');
+            ->assertJsonPath('role', 'Teacher');
     }
 
     public function test_admin_only_route_blocks_teacher_and_returns_role_map(): void

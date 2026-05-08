@@ -98,11 +98,7 @@ npm run build
 |-------|----------|------|
 | `admin@gmail.com` | `password` | Admin |
 | `teacher@gmail.com` | `password` | Teacher |
-| `programchair@gmail.com` | `password` | Program Chair |
-| `dean@gmail.com` | `password` | Dean |
 | `teacher2@gmail.com` | `password` | Teacher |
-| `departmenthead@gmail.com` | `password` | Department Head |
-| `coordinator@gmail.com` | `password` | Coordinator |
 | `inactive.teacher@gmail.com` | `password` | Teacher (Inactive) |
 
 ---
@@ -159,27 +155,7 @@ php artisan migrate:fresh --seed
 2. Create or open a course.
 3. Add CLOs, weekly plans, grading components, and supporting references.
 4. Use the AI Companion for content suggestions.
-5. Save and submit the syllabus for review.
-
-#### Department Head
-1. Log in as Department Head.
-2. Review submitted syllabi from faculty.
-3. Approve or request revisions with notes.
-
-#### Program Chair
-1. Log in as Program Chair.
-2. Monitor syllabi across the program.
-3. Check alignment, completeness, and compliance before approval.
-
-#### Dean
-1. Log in as Dean.
-2. Perform final review of approved syllabi.
-3. Confirm compliance and sign off for release.
-
-#### Coordinator
-1. Log in as Coordinator.
-2. Track academic schedules and syllabus status.
-3. Coordinate submission and review timelines.
+5. Use **My Work Sessions** to continue only their own syllabus work.
 
 ### Edit weekly syllabus content
 
@@ -200,11 +176,11 @@ php artisan migrate:fresh --seed
 2. Add/remove components for Midterm and Final
 3. Percentages must sum to 100% for each term
 
-### Approve a syllabus
+### Continue syllabus work
 
-1. Log in as Dean or Program Chair
-2. Go to **Approvals**
-3. Review pending syllabi, approve or request revision with notes
+1. Log in as Teacher
+2. Go to **My Work Sessions**
+3. Open or continue one of your own syllabi
 
 ### Export / Print syllabus
 

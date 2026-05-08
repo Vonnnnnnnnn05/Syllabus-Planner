@@ -23,28 +23,6 @@ class UserSeeder extends Seeder
                 'status' => 'Active',
             ],
             [
-                'id' => 2,
-                'name' => 'Rubin B. Cerilo',
-                'full_name' => 'Rubin B. Cerilo',
-                'email' => 'programchair@gmail.com',
-                'password' => Hash::make('password'),
-                'department_id' => 1,
-                'role' => 'Program Chair',
-                'avatar' => 'RC',
-                'status' => 'Active',
-            ],
-            [
-                'id' => 3,
-                'name' => 'Elbren O. Antonio',
-                'full_name' => 'Elbren O. Antonio',
-                'email' => 'dean@gmail.com',
-                'password' => Hash::make('password'),
-                'department_id' => 1,
-                'role' => 'Dean',
-                'avatar' => 'EA',
-                'status' => 'Active',
-            ],
-            [
                 'id' => 4,
                 'name' => 'Von Esson Vergara',
                 'full_name' => 'Von Esson Vergara',
@@ -67,28 +45,6 @@ class UserSeeder extends Seeder
                 'status' => 'Active',
             ],
             [
-                'id' => 6,
-                'name' => 'Juan Cruz',
-                'full_name' => 'Juan Cruz',
-                'email' => 'departmenthead@gmail.com',
-                'password' => Hash::make('password'),
-                'department_id' => 1,
-                'role' => 'Department Head',
-                'avatar' => 'JC',
-                'status' => 'Active',
-            ],
-            [
-                'id' => 7,
-                'name' => 'Ana Reyes',
-                'full_name' => 'Ana Reyes',
-                'email' => 'coordinator@gmail.com',
-                'password' => Hash::make('password'),
-                'department_id' => 1,
-                'role' => 'Coordinator',
-                'avatar' => 'AR',
-                'status' => 'Active',
-            ],
-            [
                 'id' => 8,
                 'name' => 'Pedro Garcia',
                 'full_name' => 'Pedro Garcia',
@@ -104,5 +60,7 @@ class UserSeeder extends Seeder
         foreach ($users as $user) {
             User::updateOrCreate(['id' => $user['id']], $user);
         }
+
+        User::whereNotIn('role', ['Admin', 'Teacher'])->delete();
     }
 }

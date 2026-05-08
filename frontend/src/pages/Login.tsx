@@ -127,10 +127,6 @@ export default function Login() {
               {[
                 { email: 'admin@gmail.com', role: 'Admin' },
                 { email: 'teacher@gmail.com', role: 'Teacher' },
-                { email: 'programchair@gmail.com', role: 'Program Chair' },
-                { email: 'dean@gmail.com', role: 'Dean' },
-                { email: 'departmenthead@gmail.com', role: 'Department Head' },
-                { email: 'coordinator@gmail.com', role: 'Coordinator' },
               ].map((acc) => (
                 <button
                   key={acc.email}

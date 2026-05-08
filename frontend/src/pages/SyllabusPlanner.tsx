@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
   ChevronLeft,
@@ -10,18 +10,174 @@ import {
   Save,
   ArrowRight,
 } from 'lucide-react'
-import { demoCourses } from '../data/demo-data'
-import { ipt2Syllabus, type WeeklyPlan } from '../data/ipt2-syllabus'
+import { courseApi, weeklyPlanApi } from '../lib/api'
 import toast from 'react-hot-toast'
+
+interface WeeklyPlan {
+  week: number
+  title: string
+  learningOutcomes: string[]
+  topics: string[]
+  teachingActivities: string[]
+  assessmentMethods: string[]
+  relatedCLO: string[]
+}
+
+type EditableWeeklyPlan = WeeklyPlan & { id?: string }
+
+interface ApiCourse {
+  id?: number | string
+  course_code: string
+  course_title: string
+  semester: string
+  academic_year: string
+  department?: { department_name: string } | null
+}
+
+interface ApiWeeklyPlan {
+  id: number | string
+  week_number: number
+  title: string
+  learning_outcomes?: string[]
+  topics?: string[]
+  teaching_learning_activities?: string[]
+  assessment_methods?: string[]
+  related_clo?: string[]
+}
+
+const createBlankWeeks = (): EditableWeeklyPlan[] =>
+  Array.from({ length: 16 }, (_, index) => ({
+    week: index + 1,
+    title: `Week ${index + 1}`,
+    learningOutcomes: [],
+    topics: [],
+    teachingActivities: [],
+    assessmentMethods: [],
+    relatedCLO: [],
+  }))
 
 export default function SyllabusPlanner() {
   const { courseId } = useParams()
-  const course = demoCourses.find((c) => c.id === courseId) || demoCourses[0]
+  const [courses, setCourses] = useState<ApiCourse[]>([])
+  const [selectedCourseId, setSelectedCourseId] = useState(courseId || '')
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true)
+  const [course, setCourse] = useState({
+    code: '',
+    title: '',
+    semester: '',
+    academicYear: '',
+    department: '',
+  })
   const [selectedWeek, setSelectedWeek] = useState(1)
-  const [plans, setPlans] = useState<WeeklyPlan[]>(ipt2Syllabus.weeklyPlans)
+  const [plans, setPlans] = useState<EditableWeeklyPlan[]>(createBlankWeeks())
   const [activeTab, setActiveTab] = useState<'content' | 'outcomes' | 'activities' | 'assessment'>('content')
 
   const currentPlan = plans.find((p) => p.week === selectedWeek) || plans[0]
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadCourses = async () => {
+      setIsLoadingCourses(true)
+      try {
+        const { data } = await courseApi.list()
+        if (!isMounted) return
+
+        const loadedCourses = data as ApiCourse[]
+        setCourses(loadedCourses)
+
+        if (!selectedCourseId && loadedCourses.length > 0) {
+          setSelectedCourseId(String(loadedCourses[0].id))
+        }
+      } catch (error) {
+        if (isMounted) {
+          setCourses([])
+          toast.error(getErrorMessage(error, 'Courses could not be loaded from the database.'))
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingCourses(false)
+        }
+      }
+    }
+
+    loadCourses()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'response' in error &&
+      typeof error.response === 'object' &&
+      error.response !== null &&
+      'data' in error.response
+    ) {
+      const data = error.response.data as { message?: string; errors?: Record<string, string[]> }
+      const firstValidationError = data.errors ? Object.values(data.errors)[0]?.[0] : undefined
+      return firstValidationError || data.message || fallback
+    }
+
+    return fallback
+  }
+
+  const mapApiPlan = (plan: ApiWeeklyPlan): EditableWeeklyPlan => ({
+    id: String(plan.id),
+    week: plan.week_number,
+    title: plan.title,
+    learningOutcomes: plan.learning_outcomes || [],
+    topics: plan.topics || [],
+    teachingActivities: plan.teaching_learning_activities || [],
+    assessmentMethods: plan.assessment_methods || [],
+    relatedCLO: plan.related_clo || [],
+  })
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadPlanner = async () => {
+      if (!selectedCourseId) {
+        setCourse({ code: '', title: '', semester: '', academicYear: '', department: '' })
+        setPlans(createBlankWeeks())
+        return
+      }
+
+      try {
+        const [courseResponse, weeklyPlansResponse] = await Promise.all([
+          courseApi.get(selectedCourseId),
+          weeklyPlanApi.list(selectedCourseId),
+        ])
+
+        if (!isMounted) return
+
+        const apiCourse = courseResponse.data as ApiCourse
+        const apiPlans = weeklyPlansResponse.data as ApiWeeklyPlan[]
+        setCourse({
+          code: apiCourse.course_code,
+          title: apiCourse.course_title,
+          semester: apiCourse.semester,
+          academicYear: apiCourse.academic_year,
+          department: apiCourse.department?.department_name || '',
+        })
+        setPlans(apiPlans.length > 0 ? apiPlans.map(mapApiPlan) : createBlankWeeks())
+      } catch (error) {
+        if (isMounted) {
+          setPlans(createBlankWeeks())
+          toast.error(getErrorMessage(error, 'Weekly plans could not be loaded from the database.'))
+        }
+      }
+    }
+
+    loadPlanner()
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedCourseId])
 
   const updatePlan = (field: keyof WeeklyPlan, value: string | string[]) => {
     setPlans((prev) =>
@@ -51,8 +207,37 @@ export default function SyllabusPlanner() {
     updatePlan(field, updated)
   }
 
-  const handleSave = () => {
-    toast.success(`Week ${selectedWeek} saved successfully`)
+  const buildPayload = (plan: EditableWeeklyPlan) => ({
+    course_id: selectedCourseId,
+    week_number: plan.week,
+    title: plan.title,
+    learning_outcomes: plan.learningOutcomes,
+    topics: plan.topics,
+    teaching_learning_activities: plan.teachingActivities,
+    assessment_methods: plan.assessmentMethods,
+    related_clo: plan.relatedCLO,
+  })
+
+  const handleSave = async () => {
+    if (!selectedCourseId) {
+      toast.error('Please select a course first')
+      return
+    }
+
+    try {
+      if (currentPlan.id) {
+        const { data } = await weeklyPlanApi.update(currentPlan.id, buildPayload(currentPlan))
+        const updatedPlan = mapApiPlan(data as ApiWeeklyPlan)
+        setPlans((prev) => prev.map((plan) => (plan.week === selectedWeek ? updatedPlan : plan)))
+      } else {
+        const { data } = await weeklyPlanApi.create(buildPayload(currentPlan))
+        const createdPlan = mapApiPlan(data as ApiWeeklyPlan)
+        setPlans((prev) => prev.map((plan) => (plan.week === selectedWeek ? createdPlan : plan)))
+      }
+      toast.success(`Week ${selectedWeek} saved successfully`)
+    } catch (error) {
+      toast.error(getErrorMessage(error, `Unable to save week ${selectedWeek}`))
+    }
   }
 
   const tabs = [
@@ -74,16 +259,38 @@ export default function SyllabusPlanner() {
             <ArrowRight className="w-3 h-3 text-academic-text-muted" />
             <span className="text-xs text-academic-text-muted">Syllabus Planner</span>
           </div>
-          <h1 className="page-header">{course.code} — {course.title}</h1>
-          <p className="page-subtitle">{course.semester} · {course.academicYear} · {course.department}</p>
+          <h1 className="page-header">
+            {course.code && course.title ? `${course.code} - ${course.title}` : 'Syllabus Planner'}
+          </h1>
+          <p className="page-subtitle">
+            {course.code
+              ? `${course.semester} - ${course.academicYear} - ${course.department}`
+              : 'Select a course to plan weekly syllabus content.'}
+          </p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={handleSave} className="btn-primary">
+          <button onClick={handleSave} className="btn-primary" disabled={!selectedCourseId}>
             <Save className="w-4 h-4" /> Save Week
           </button>
         </div>
       </div>
 
+      <div className="card p-4">
+        <label className="label">Course</label>
+        <select
+          value={selectedCourseId}
+          onChange={(e) => setSelectedCourseId(e.target.value)}
+          className="input-field appearance-none cursor-pointer"
+          disabled={isLoadingCourses}
+        >
+          <option value="">{isLoadingCourses ? 'Loading courses...' : 'Select a course'}</option>
+          {courses.map((courseOption) => (
+            <option key={String(courseOption.id)} value={String(courseOption.id)}>
+              {courseOption.course_code} - {courseOption.course_title}
+            </option>
+          ))}
+        </select>
+      </div>
       {/* Week Selector */}
       <div className="card p-4">
         <div className="flex items-center gap-3">
@@ -331,3 +538,4 @@ export default function SyllabusPlanner() {
     </div>
   )
 }
+

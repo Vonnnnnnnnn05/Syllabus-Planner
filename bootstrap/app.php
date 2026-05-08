@@ -35,11 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'your_role' => $userRole,
                 'role_access_map' => [
                     'Admin' => ['full-access', 'manage-users', 'manage-departments'],
-                    'Dean' => ['view-all-academic-data', 'manage-departments'],
-                    'Department Head' => ['department-scoped-data', 'manage-departments'],
-                    'Program Chair' => ['department-scoped-data'],
-                    'Coordinator' => ['department-scoped-data'],
-                    'Teacher' => ['own-course-data'],
+                    'Teacher' => ['own-syllabus-data'],
                 ],
             ], 403);
         });

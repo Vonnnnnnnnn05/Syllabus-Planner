@@ -26,6 +26,12 @@ class AuthController extends Controller
             ]);
         }
 
+        if (! in_array($user->role, ['Admin', 'Teacher'], true)) {
+            throw ValidationException::withMessages([
+                'email' => ['Only Admin and Teacher accounts can sign in.'],
+            ]);
+        }
+
         $sessionAuthenticated = $request->hasSession(true);
         if ($sessionAuthenticated) {
             Auth::guard('web')->login($user);

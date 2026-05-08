@@ -1,376 +1,273 @@
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
   ArrowLeft,
   Printer,
   Download,
-  BookOpen,
-  Target,
-  Scale,
-  FileText,
-  ListChecks,
-  CheckCircle2,
   GraduationCap,
-  Calendar,
-  User,
-  Building2,
+  CheckCircle2,
 } from 'lucide-react'
-import { demoCourses } from '../data/demo-data'
-import { ipt2Syllabus } from '../data/ipt2-syllabus'
+import { courseApi } from '../lib/api'
 import toast from 'react-hot-toast'
+
+interface ApiCourse {
+  id: number | string
+  course_code: string
+  course_title: string
+  course_description?: string | null
+  prerequisite?: string | null
+  credit_units: number
+  semester: string
+  academic_year: string
+  total_hours?: number | null
+  lecture_hours?: number | null
+  lab_hours?: number | null
+  department?: { department_name: string } | null
+  user?: { full_name?: string | null; name?: string | null } | null
+  clos?: Array<{ id: number | string; code: string; description: string; program_outcomes?: string[] }>
+  weekly_plans?: Array<{
+    id: number | string
+    week_number: number
+    title: string
+    learning_outcomes?: string[]
+    topics?: string[]
+    teaching_learning_activities?: string[]
+    assessment_methods?: string[]
+  }>
+  grading_systems?: Array<{ id: number | string; term: string; component_name: string; percentage: number }>
+  requirement_policies?: Array<{ id: number | string; requirements?: string | null; policies?: string | null }>
+  references?: Array<{ id: number | string; reference_type: string; reference_title: string; reference_author?: string | null; reference_year?: string | null; reference_link?: string | null }>
+  rubrics?: Array<{ id: number | string; name: string; excellent: string; good: string; fair: string; poor: string }>
+}
+
+const lines = (value?: string | null) => (value || '').split('\n').filter(Boolean)
 
 export default function SyllabusView() {
   const { courseId } = useParams()
-  const course = demoCourses.find((c) => c.id === courseId) || demoCourses[0]
-  const s = ipt2Syllabus
+  const [course, setCourse] = useState<ApiCourse | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadCourse = async () => {
+      if (!courseId) return
+      setIsLoading(true)
+      try {
+        const { data } = await courseApi.get(courseId)
+        if (isMounted) setCourse(data as ApiCourse)
+      } catch {
+        if (isMounted) {
+          setCourse(null)
+          toast.error('Syllabus could not be loaded from the database.')
+        }
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    loadCourse()
+
+    return () => {
+      isMounted = false
+    }
+  }, [courseId])
 
   const handlePrint = () => {
     toast.success('Preparing print view...')
     setTimeout(() => window.print(), 500)
   }
 
+  const midterm = course?.grading_systems?.filter((g) => g.term === 'midterm') || []
+  const final = course?.grading_systems?.filter((g) => g.term === 'final') || []
+  const policy = course?.requirement_policies?.[0]
+
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div className="flex items-center gap-3">
-          <Link
-            to="/courses"
-            className="p-2 rounded-lg border border-academic-border hover:bg-academic-bg transition-colors"
-          >
+          <Link to="/courses" className="p-2 rounded-lg border border-academic-border hover:bg-academic-bg transition-colors">
             <ArrowLeft className="w-4 h-4 text-academic-text-muted" />
           </Link>
           <div>
             <h1 className="page-header mb-0">Syllabus View</h1>
-            <p className="page-subtitle">{course.code} — {course.title}</p>
+            <p className="page-subtitle">
+              {isLoading ? 'Loading from database...' : course ? `${course.course_code} - ${course.course_title}` : 'No syllabus found'}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handlePrint} className="btn-ghost border border-academic-border">
+          <button onClick={handlePrint} className="btn-ghost border border-academic-border" disabled={!course}>
             <Printer className="w-4 h-4" /> Print
           </button>
-          <button
-            onClick={() => toast.success('PDF export coming soon')}
-            className="btn-primary"
-          >
+          <button onClick={() => toast.success('PDF export coming soon')} className="btn-primary" disabled={!course}>
             <Download className="w-4 h-4" /> Export PDF
           </button>
         </div>
       </div>
 
-      {/* Syllabus Document */}
-      <div className="bg-white rounded-2xl border border-academic-border shadow-soft p-8 lg:p-12 max-w-5xl mx-auto print:shadow-none print:border-none">
-        {/* Institution Header */}
-        <div className="text-center pb-8 border-b-2 border-academic-primary/10">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-academic-primary flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-white" />
+      {!course ? (
+        <div className="card text-center py-12">
+          <p className="text-sm text-academic-text-muted">{isLoading ? 'Loading syllabus...' : 'No database syllabus found.'}</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-academic-border shadow-soft p-8 lg:p-12 max-w-5xl mx-auto print:shadow-none print:border-none">
+          <div className="text-center pb-8 border-b-2 border-academic-primary/10">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-academic-primary flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-white" />
+              </div>
             </div>
+            <h2 className="text-2xl font-bold text-academic-primary tracking-tight">Sultan Kudarat State University</h2>
+            <p className="text-sm text-academic-text-muted mt-1">College of Computing and Information Technology</p>
+            <p className="text-sm text-academic-text-muted">{course.department?.department_name || 'No department'}</p>
           </div>
-          <h2 className="text-2xl font-bold text-academic-primary tracking-tight">
-            Sultan Kudarat State University
-          </h2>
-          <p className="text-sm text-academic-text-muted mt-1">College of Computing and Information Technology</p>
-          <p className="text-sm text-academic-text-muted">{course.department}</p>
-        </div>
 
-        {/* Course Header */}
-        <div className="py-8 border-b border-academic-border">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="badge badge-info text-xs">{course.semester}</span>
-            <span className="badge badge-neutral text-xs">{course.academicYear}</span>
-            <span className="badge badge-neutral text-xs">{course.creditUnits} Units</span>
+          <div className="py-8 border-b border-academic-border">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="badge badge-info text-xs">{course.semester}</span>
+              <span className="badge badge-neutral text-xs">{course.academic_year}</span>
+              <span className="badge badge-neutral text-xs">{course.credit_units} Units</span>
+            </div>
+            <h1 className="text-3xl font-bold text-academic-primary tracking-tight">
+              {course.course_code}: {course.course_title}
+            </h1>
+            <p className="text-sm text-academic-text-muted mt-2 max-w-2xl">{course.course_description || 'No description saved.'}</p>
           </div>
-          <h1 className="text-3xl font-bold text-academic-primary tracking-tight">
-            {course.code}: {course.title}
-          </h1>
-          <p className="text-sm text-academic-text-muted mt-2 max-w-2xl">{course.description}</p>
-        </div>
 
-        {/* Meta Info */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-6 border-b border-academic-border">
-          <div className="flex items-center gap-3">
-            <User className="w-4 h-4 text-academic-accent" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-6 border-b border-academic-border">
             <div>
-              <p className="text-xs text-academic-text-muted">Faculty</p>
-              <p className="text-sm font-medium text-academic-text">{s.faculty}</p>
+              <p className="text-xs font-semibold uppercase text-academic-text-muted">Teacher</p>
+              <p className="text-sm font-medium text-academic-text">{course.user?.full_name || course.user?.name || 'Unassigned'}</p>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Building2 className="w-4 h-4 text-academic-accent" />
             <div>
-              <p className="text-xs text-academic-text-muted">Program</p>
-              <p className="text-sm font-medium text-academic-text">{s.program}</p>
+              <p className="text-xs font-semibold uppercase text-academic-text-muted">Prerequisite</p>
+              <p className="text-sm font-medium text-academic-text">{course.prerequisite || 'None'}</p>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Calendar className="w-4 h-4 text-academic-accent" />
             <div>
-              <p className="text-xs text-academic-text-muted">Duration</p>
-              <p className="text-sm font-medium text-academic-text">{s.totalHours} hours ({s.lectureHours} lec + {s.labHours} lab)</p>
+              <p className="text-xs font-semibold uppercase text-academic-text-muted">Hours</p>
+              <p className="text-sm font-medium text-academic-text">
+                {course.total_hours || 0} hours ({course.lecture_hours || 0} lec + {course.lab_hours || 0} lab)
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Course Objectives */}
-        <div className="py-8 border-b border-academic-border">
-          <h2 className="text-lg font-bold text-academic-primary flex items-center gap-2 mb-4">
-            <Target className="w-5 h-5 text-academic-accent" />
-            Course Objectives
-          </h2>
-          <ul className="space-y-2">
-            {s.courseObjectives.map((obj, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-academic-text">
-                <span className="w-5 h-5 rounded-full bg-academic-primary/5 flex items-center justify-center text-xs font-bold text-academic-primary shrink-0 mt-0.5">
-                  {i + 1}
-                </span>
-                {obj}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* CLOs */}
-        <div className="py-8 border-b border-academic-border">
-          <h2 className="text-lg font-bold text-academic-primary flex items-center gap-2 mb-4">
-            <CheckCircle2 className="w-5 h-5 text-academic-accent" />
-            Course Learning Outcomes (CLOs)
-          </h2>
-          <div className="space-y-3">
-            {s.clos.map((clo, i) => (
-              <div key={clo.id} className="p-4 rounded-xl bg-academic-bg border border-academic-border">
-                <div className="flex items-start gap-3">
-                  <span className="w-8 h-8 rounded-lg bg-academic-primary/10 flex items-center justify-center text-sm font-bold text-academic-primary shrink-0">
-                    {clo.code}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-sm text-academic-text">{clo.description}</p>
+          <section className="py-8 border-b border-academic-border">
+            <h3 className="section-title mb-4">Course Learning Outcomes</h3>
+            <div className="space-y-3">
+              {(course.clos || []).length === 0 ? (
+                <p className="text-sm text-academic-text-muted">No CLOs saved.</p>
+              ) : (
+                course.clos?.map((clo) => (
+                  <div key={clo.id} className="p-4 rounded-lg bg-academic-bg">
+                    <p className="text-sm font-semibold text-academic-text">{clo.code}</p>
+                    <p className="text-sm text-academic-text-muted mt-1">{clo.description}</p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      {clo.programOutcomes.map((po) => (
-                        <span
-                          key={po}
-                          className="px-2 py-0.5 rounded-md bg-academic-accent/10 text-academic-accent-dark text-xs font-semibold"
-                        >
-                          PO-{po.toUpperCase()}
-                        </span>
+                      {(clo.program_outcomes || []).map((po) => (
+                        <span key={po} className="badge badge-info text-[10px]">PO-{po.toUpperCase()}</span>
                       ))}
                     </div>
                   </div>
-                </div>
+                ))
+              )}
+            </div>
+          </section>
+
+          <section className="py-8 border-b border-academic-border">
+            <h3 className="section-title mb-4">Weekly Plan</h3>
+            <div className="space-y-4">
+              {(course.weekly_plans || []).length === 0 ? (
+                <p className="text-sm text-academic-text-muted">No weekly plans saved.</p>
+              ) : (
+                course.weekly_plans
+                  ?.sort((a, b) => a.week_number - b.week_number)
+                  .map((week) => (
+                    <div key={week.id} className="p-4 rounded-lg border border-academic-border">
+                      <p className="text-sm font-semibold text-academic-primary">Week {week.week_number}: {week.title}</p>
+                      {[
+                        ['Topics', week.topics],
+                        ['Learning Outcomes', week.learning_outcomes],
+                        ['Activities', week.teaching_learning_activities],
+                        ['Assessment', week.assessment_methods],
+                      ].map(([label, items]) => (
+                        <div key={label as string} className="mt-3">
+                          <p className="text-xs font-semibold uppercase text-academic-text-muted">{label as string}</p>
+                          <ul className="mt-1 space-y-1">
+                            {((items as string[]) || []).map((item, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm text-academic-text">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  ))
+              )}
+            </div>
+          </section>
+
+          <section className="py-8 border-b border-academic-border">
+            <h3 className="section-title mb-4">Grading System</h3>
+            {[
+              ['Midterm', midterm],
+              ['Final', final],
+            ].map(([label, items]) => (
+              <div key={label as string} className="mb-5">
+                <p className="text-sm font-semibold text-academic-text mb-2">{label as string}</p>
+                {(items as typeof midterm).length === 0 ? (
+                  <p className="text-sm text-academic-text-muted">No components saved.</p>
+                ) : (
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {(items as typeof midterm).map((g) => (
+                        <tr key={g.id} className="border-b border-academic-border">
+                          <td className="py-2 text-academic-text">{g.component_name}</td>
+                          <td className="py-2 text-right text-academic-text-muted">{g.percentage}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             ))}
-          </div>
-        </div>
+          </section>
 
-        {/* Weekly Plan */}
-        <div className="py-8 border-b border-academic-border">
-          <h2 className="text-lg font-bold text-academic-primary flex items-center gap-2 mb-4">
-            <Calendar className="w-5 h-5 text-academic-accent" />
-            Weekly Course Plan
-          </h2>
-          <div className="space-y-3">
-            {s.weeklyPlans.map((week) => (
-              <div key={week.week} className="p-4 rounded-xl border border-academic-border hover:shadow-soft transition-shadow">
-                <div className="flex items-start gap-3">
-                  <span className="w-10 h-10 rounded-lg bg-academic-primary flex items-center justify-center text-sm font-bold text-white shrink-0">
-                    W{week.week}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-academic-text">{week.title}</h3>
-                    {week.topics.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-academic-text-muted mb-1">Topics</p>
-                        <ul className="space-y-1">
-                          {week.topics.map((topic, i) => (
-                            <li key={i} className="text-xs text-academic-text-muted flex items-start gap-1.5">
-                              <span className="text-academic-accent mt-0.5">•</span>
-                              {topic}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {week.learningOutcomes.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-academic-text-muted mb-1">Learning Outcomes</p>
-                        {week.learningOutcomes.map((lo, i) => (
-                          <p key={i} className="text-xs text-academic-text-muted">{lo}</p>
-                        ))}
-                      </div>
-                    )}
-                    {week.teachingActivities.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-academic-text-muted mb-1">Activities</p>
-                        {week.teachingActivities.map((act, i) => (
-                          <p key={i} className="text-xs text-academic-text-muted">{act}</p>
-                        ))}
-                      </div>
-                    )}
-                    {week.assessmentMethods.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-academic-text-muted mb-1">Assessment</p>
-                        {week.assessmentMethods.map((am, i) => (
-                          <p key={i} className="text-xs text-academic-text-muted">{am}</p>
-                        ))}
-                      </div>
-                    )}
-                    {week.relatedCLO.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {week.relatedCLO.map((clo) => (
-                          <span key={clo} className="badge badge-info text-[10px]">{clo}</span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+          <section className="py-8 border-b border-academic-border">
+            <h3 className="section-title mb-4">Requirements and Policies</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-xs font-semibold uppercase text-academic-text-muted mb-2">Requirements</p>
+                <ul className="space-y-2">
+                  {lines(policy?.requirements).map((item, i) => <li key={i} className="text-sm text-academic-text">{item}</li>)}
+                </ul>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Grading System */}
-        <div className="py-8 border-b border-academic-border">
-          <h2 className="text-lg font-bold text-academic-primary flex items-center gap-2 mb-4">
-            <Scale className="w-5 h-5 text-academic-accent" />
-            Grading System
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-5 rounded-xl bg-academic-bg border border-academic-border">
-              <h3 className="text-sm font-bold text-academic-primary mb-3">Midterm Grade</h3>
-              <div className="space-y-2">
-                {s.midtermGrading.map((g, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="text-academic-text">{g.name}</span>
-                    <span className="font-semibold text-academic-primary">{g.percentage}%</span>
-                  </div>
-                ))}
+              <div>
+                <p className="text-xs font-semibold uppercase text-academic-text-muted mb-2">Policies</p>
+                <ul className="space-y-2">
+                  {lines(policy?.policies).map((item, i) => <li key={i} className="text-sm text-academic-text">{item}</li>)}
+                </ul>
               </div>
             </div>
-            <div className="p-5 rounded-xl bg-academic-bg border border-academic-border">
-              <h3 className="text-sm font-bold text-academic-primary mb-3">Final Term Grade</h3>
-              <div className="space-y-2">
-                {s.finalGrading.map((g, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="text-academic-text">{g.name}</span>
-                    <span className="font-semibold text-academic-primary">{g.percentage}%</span>
-                  </div>
-                ))}
+          </section>
+
+          <div className="pt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-center">
+              <div>
+                <div className="h-16 border-b border-academic-text mb-2" />
+                <p className="text-sm font-semibold text-academic-text">{course.user?.full_name || course.user?.name || 'Teacher'}</p>
+                <p className="text-xs text-academic-text-muted">Teacher</p>
+              </div>
+              <div>
+                <div className="h-16 border-b border-academic-text mb-2" />
+                <p className="text-sm font-semibold text-academic-text">Administrator</p>
+                <p className="text-xs text-academic-text-muted">Admin Review</p>
               </div>
             </div>
           </div>
-          <div className="mt-4 p-4 rounded-xl bg-academic-accent/5 border border-academic-accent/20">
-            <p className="text-sm text-academic-text">
-              <strong>Final Grade =</strong> Midterm Grade (50%) + Final Term Grade (50%)
-            </p>
-          </div>
         </div>
-
-        {/* Rubrics */}
-        <div className="py-8 border-b border-academic-border">
-          <h2 className="text-lg font-bold text-academic-primary flex items-center gap-2 mb-4">
-            <ListChecks className="w-5 h-5 text-academic-accent" />
-            Grading Rubrics
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border border-academic-border rounded-xl overflow-hidden">
-              <thead>
-                <tr className="bg-academic-bg">
-                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-academic-text-muted">Criteria</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-academic-text-muted w-1/4">Excellent (4)</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-academic-text-muted w-1/4">Good (3)</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-academic-text-muted w-1/4">Fair (2)</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-academic-text-muted w-1/4">Poor (1)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-academic-border">
-                {s.rubrics.map((r, i) => (
-                  <tr key={i} className="hover:bg-academic-bg/30">
-                    <td className="px-4 py-3 font-semibold text-academic-text">{r.name}</td>
-                    <td className="px-4 py-3 text-xs text-academic-text-muted">{r.excellent}</td>
-                    <td className="px-4 py-3 text-xs text-academic-text-muted">{r.good}</td>
-                    <td className="px-4 py-3 text-xs text-academic-text-muted">{r.fair}</td>
-                    <td className="px-4 py-3 text-xs text-academic-text-muted">{r.poor}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* References */}
-        <div className="py-8 border-b border-academic-border">
-          <h2 className="text-lg font-bold text-academic-primary flex items-center gap-2 mb-4">
-            <BookOpen className="w-5 h-5 text-academic-accent" />
-            References
-          </h2>
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-academic-text-muted mb-2">Textbooks</p>
-            {s.references.filter((r) => r.type === 'textbook').map((ref, i) => (
-              <p key={i} className="text-sm text-academic-text pl-3">
-                {ref.author} ({ref.year}). <em>{ref.title}</em>.
-              </p>
-            ))}
-            <p className="text-xs font-semibold uppercase tracking-wider text-academic-text-muted mt-4 mb-2">Online References</p>
-            {s.references.filter((r) => r.type === 'online').map((ref, i) => (
-              <p key={i} className="text-sm text-academic-text pl-3">
-                {ref.title} — {ref.link}
-              </p>
-            ))}
-          </div>
-        </div>
-
-        {/* Requirements & Policies */}
-        <div className="py-8 border-b border-academic-border">
-          <h2 className="text-lg font-bold text-academic-primary flex items-center gap-2 mb-4">
-            <FileText className="w-5 h-5 text-academic-accent" />
-            Course Requirements & Policies
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-academic-text-muted mb-2">Requirements</p>
-              <ul className="space-y-2">
-                {s.requirements.map((req, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-academic-text">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                    {req}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-academic-text-muted mb-2">Policies</p>
-              <ul className="space-y-2">
-                {s.policies.map((pol, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-academic-text">
-                    <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                    {pol}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Signatures */}
-        <div className="pt-8">
-          <div className="grid grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="h-16 border-b border-academic-text mb-2" />
-              <p className="text-sm font-semibold text-academic-text">{s.faculty}</p>
-              <p className="text-xs text-academic-text-muted">Faculty</p>
-            </div>
-            <div>
-              <div className="h-16 border-b border-academic-text mb-2" />
-              <p className="text-sm font-semibold text-academic-text">{s.programChair}</p>
-              <p className="text-xs text-academic-text-muted">Program Chairperson</p>
-            </div>
-            <div>
-              <div className="h-16 border-b border-academic-text mb-2" />
-              <p className="text-sm font-semibold text-academic-text">{s.dean}</p>
-              <p className="text-xs text-academic-text-muted">College Dean</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   )
 }

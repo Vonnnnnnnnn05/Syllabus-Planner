@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\Concerns\HandlesRoleAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
@@ -14,10 +15,13 @@ class CourseController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Course::with('department', 'user');
+        $query = Course::with('department', 'user', 'sharedTeachers');
 
         if ($this->isTeacher($user)) {
-            $query->where('user_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhereHas('sharedTeachers', fn ($shared) => $shared->where('users.id', $user->id));
+            });
         } elseif ($this->isDepartmentScopedRole($user)) {
             $query->where('department_id', $user->department_id);
         }
@@ -86,7 +90,7 @@ class CourseController extends Controller
 
         $course = Course::create($validated);
 
-        return response()->json($course, 201);
+        return response()->json($course->load('department', 'user'), 201);
     }
 
     public function update(Request $request, $id)
@@ -114,7 +118,7 @@ class CourseController extends Controller
 
         $course->update($validated);
 
-        return response()->json($course);
+        return response()->json($course->load('department', 'user'));
     }
 
     public function destroy($id)
@@ -122,10 +126,37 @@ class CourseController extends Controller
         $user = request()->user();
         $course = Course::findOrFail($id);
 
-        abort_unless($this->canAccessCourse($user, $course), 403, 'You are not allowed to delete this course.');
+        abort_unless(
+            $this->canViewAllData($user) || (int) $course->user_id === (int) $user->id,
+            403,
+            'Only the owner or an admin can delete this course.'
+        );
 
         $course->delete();
 
         return response()->json(['message' => 'Course deleted']);
+    }
+
+    public function share(Request $request, $id)
+    {
+        $user = $request->user();
+        $course = Course::findOrFail($id);
+
+        abort_unless(
+            $this->canViewAllData($user) || (int) $course->user_id === (int) $user->id,
+            403,
+            'Only the owner or an admin can share this course.'
+        );
+
+        $validated = $request->validate([
+            'teacher_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $teacher = User::where('role', 'Teacher')->findOrFail($validated['teacher_id']);
+        abort_if((int) $teacher->id === (int) $course->user_id, 422, 'The course owner already has access.');
+
+        $course->sharedTeachers()->syncWithoutDetaching([$teacher->id]);
+
+        return response()->json($course->load('department', 'user', 'sharedTeachers'));
     }
 }

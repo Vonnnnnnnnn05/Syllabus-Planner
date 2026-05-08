@@ -26,7 +26,7 @@ const navItems = [
   { label: 'Learning Outcomes', icon: Target, path: '/clos' },
   { label: 'Grading System', icon: Scale, path: '/grading' },
   { label: 'AI Companion', icon: Sparkles, path: '/ai-companion' },
-  { label: 'Approvals', icon: ClipboardCheck, path: '/approvals' },
+  { label: 'My Work Sessions', icon: ClipboardCheck, path: '/approvals' },
   { label: 'User Management', icon: Users, path: '/users' },
 ]
 

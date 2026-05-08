@@ -19,7 +19,7 @@ trait HandlesRoleAccess
 
     protected function canViewAllData(User $user): bool
     {
-        return $this->isRole($user, ['Admin', 'Dean']);
+        return $this->isRole($user, ['Admin']);
     }
 
     protected function canManageUsers(User $user): bool
@@ -29,12 +29,12 @@ trait HandlesRoleAccess
 
     protected function canManageDepartments(User $user): bool
     {
-        return $this->isRole($user, ['Admin', 'Dean', 'Department Head']);
+        return $this->isRole($user, ['Admin']);
     }
 
     protected function isDepartmentScopedRole(User $user): bool
     {
-        return $this->isRole($user, ['Program Chair', 'Department Head', 'Coordinator']);
+        return false;
     }
 
     protected function isTeacher(User $user): bool
@@ -53,7 +53,8 @@ trait HandlesRoleAccess
         }
 
         if ($this->isTeacher($user)) {
-            return (int) $course->user_id === (int) $user->id;
+            return (int) $course->user_id === (int) $user->id
+                || $course->sharedTeachers()->where('users.id', $user->id)->exists();
         }
 
         return (int) $course->user_id === (int) $user->id;

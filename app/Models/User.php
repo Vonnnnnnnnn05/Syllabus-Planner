@@ -62,4 +62,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Course::class);
     }
+
+    public function sharedCourses()
+    {
+        return $this->belongsToMany(Course::class, 'course_shares')->withTimestamps();
+    }
 }

@@ -18,7 +18,9 @@ class GradingSystemController extends Controller
         $query = GradingSystem::with('course');
 
         if ($this->isTeacher($user)) {
-            $query->whereHas('course', fn ($q) => $q->where('user_id', $user->id));
+            $query->whereHas('course', fn ($q) => $q
+                ->where('user_id', $user->id)
+                ->orWhereHas('sharedTeachers', fn ($shared) => $shared->where('users.id', $user->id)));
         } elseif ($this->isDepartmentScopedRole($user)) {
             $query->whereHas('course', fn ($q) => $q->where('department_id', $user->department_id));
         }

@@ -16,18 +16,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    Route::middleware('role:Admin,Dean,Department Head,Program Chair,Coordinator,Teacher')->group(function () {
+    Route::middleware('role:Admin,Teacher')->group(function () {
         Route::apiResource('courses', CourseController::class);
+        Route::put('/courses/{id}/share', [CourseController::class, 'share']);
         Route::apiResource('clos', CloController::class);
         Route::apiResource('weekly-plans', WeeklyPlanController::class);
         Route::apiResource('grading-systems', GradingSystemController::class);
         Route::apiResource('syllabi', SyllabusController::class);
         Route::get('/departments', [DepartmentController::class, 'index']);
         Route::get('/users', [UserController::class, 'index']);
+        Route::get('/teachers', [UserController::class, 'teachers']);
         Route::put('/users/{id}', [UserController::class, 'update']);
     });
 
-    Route::middleware('role:Admin,Dean,Department Head')->group(function () {
+    Route::middleware('role:Admin')->group(function () {
         Route::post('/departments', [DepartmentController::class, 'store']);
         Route::put('/departments/{id}', [DepartmentController::class, 'update']);
         Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
