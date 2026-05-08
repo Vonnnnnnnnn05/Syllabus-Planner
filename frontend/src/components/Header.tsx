@@ -1,0 +1,46 @@
+import { Menu, Bell, Search } from 'lucide-react'
+
+interface HeaderProps {
+  onMenuClick: () => void
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
+  return (
+    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-academic-border">
+      <div className="flex items-center justify-between h-16 px-6 lg:px-8">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onMenuClick}
+            className="lg:hidden p-2 rounded-lg text-academic-text-muted hover:bg-academic-surface-alt transition-colors"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="hidden md:flex items-center relative">
+            <Search className="absolute left-3 w-4 h-4 text-academic-text-muted" />
+            <input
+              type="text"
+              placeholder="Search courses, syllabi, or users..."
+              className="w-80 pl-9 pr-4 py-2 rounded-lg bg-academic-bg border border-transparent text-sm text-academic-text placeholder:text-academic-text-muted focus:outline-none focus:border-academic-primary/20 focus:bg-white transition-all"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button className="relative p-2 rounded-lg text-academic-text-muted hover:bg-academic-surface-alt transition-colors">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-academic-accent" />
+          </button>
+          <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-academic-border">
+            <div className="w-8 h-8 rounded-full bg-academic-primary flex items-center justify-center text-xs font-bold text-white">
+              MD
+            </div>
+            <div className="hidden md:block">
+              <p className="text-sm font-medium text-academic-text">Mark Jovic</p>
+              <p className="text-xs text-academic-text-muted">IT Department</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
