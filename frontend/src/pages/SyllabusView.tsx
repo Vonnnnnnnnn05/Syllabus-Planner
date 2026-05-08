@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { courseApi } from '../lib/api'
 import toast from 'react-hot-toast'
+import html2pdf from 'html2pdf.js'
 
 interface ApiCourse {
   id: number | string
@@ -46,6 +47,7 @@ export default function SyllabusView() {
   const { courseId } = useParams()
   const [course, setCourse] = useState<ApiCourse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const syllabusRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -78,6 +80,35 @@ export default function SyllabusView() {
     setTimeout(() => window.print(), 500)
   }
 
+  const handleExportPDF = () => {
+    if (!syllabusRef.current || !course) return
+
+    toast.loading('Generating PDF...', { id: 'pdf-export' })
+
+    const element = syllabusRef.current
+    const opt = {
+      margin: [15, 15, 15, 15] as [number, number, number, number],
+      filename: `${course.course_code}_${course.course_title.replace(/\s+/g, '_')}_syllabus.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { 
+        scale: 3, 
+        useCORS: true, 
+        letterRendering: true,
+        scrollY: 0,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    }
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      toast.success('PDF exported successfully', { id: 'pdf-export' })
+    }).catch(() => {
+      toast.error('Failed to export PDF', { id: 'pdf-export' })
+    })
+  }
+
   const midterm = course?.grading_systems?.filter((g) => g.term === 'midterm') || []
   const final = course?.grading_systems?.filter((g) => g.term === 'final') || []
   const policy = course?.requirement_policies?.[0]
@@ -100,7 +131,7 @@ export default function SyllabusView() {
           <button onClick={handlePrint} className="btn-ghost border border-academic-border" disabled={!course}>
             <Printer className="w-4 h-4" /> Print
           </button>
-          <button onClick={() => toast.success('PDF export coming soon')} className="btn-primary" disabled={!course}>
+          <button onClick={handleExportPDF} className="btn-primary" disabled={!course}>
             <Download className="w-4 h-4" /> Export PDF
           </button>
         </div>
@@ -111,7 +142,7 @@ export default function SyllabusView() {
           <p className="text-sm text-academic-text-muted">{isLoading ? 'Loading syllabus...' : 'No database syllabus found.'}</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-academic-border shadow-soft p-8 lg:p-12 max-w-5xl mx-auto print:shadow-none print:border-none">
+        <div ref={syllabusRef} className="bg-white rounded-2xl border border-academic-border shadow-soft p-8 lg:p-12 max-w-5xl mx-auto print:shadow-none print:border-none">
           <div className="text-center pb-8 border-b-2 border-academic-primary/10">
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl bg-academic-primary flex items-center justify-center">

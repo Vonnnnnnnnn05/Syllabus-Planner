@@ -1,19 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  ClipboardCheck,
-  CheckCircle2,
-  Clock,
-  Edit3,
-  Eye,
-  Filter,
-} from 'lucide-react'
+import { ClipboardCheck, CheckCircle2, Clock, Edit3, Eye } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { courseApi, syllabusApi } from '../lib/api'
 import { formatDate } from '../lib/utils'
 import toast from 'react-hot-toast'
 
-type SessionStatus = 'All' | 'Draft' | 'Under Review' | 'Revision Required' | 'Approved' | 'Published'
+// Status filtering removed for personal syllabus planner
 
 interface WorkCourse {
   id: string
@@ -56,7 +49,6 @@ interface ApiSyllabus {
 
 export default function ApprovalWorkflow() {
   const { user } = useAuth()
-  const [filter, setFilter] = useState<SessionStatus>('All')
   const [courses, setCourses] = useState<WorkCourse[]>([])
   const [syllabi, setSyllabi] = useState<WorkSyllabus[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -137,27 +129,12 @@ export default function ApprovalWorkflow() {
 
     return {
       course,
-      status: syllabus?.status || course.status || 'Draft',
       submittedAt: syllabus?.submittedAt,
       notes: syllabus?.notes,
     }
   })
 
-  const filtered = filter === 'All' ? workSessions : workSessions.filter((session) => session.status === filter)
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Published':
-      case 'Approved':
-        return 'badge-success'
-      case 'Under Review':
-        return 'badge-warning'
-      case 'Revision Required':
-        return 'badge-danger'
-      default:
-        return 'badge-info'
-    }
-  }
+  const filtered = workSessions
 
   return (
     <div className="space-y-6">
@@ -170,21 +147,7 @@ export default function ApprovalWorkflow() {
               : 'View and continue your own subject/course work.'}
           </p>
         </div>
-        <div className="relative">
-          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-academic-text-muted" />
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as SessionStatus)}
-            className="input-field pl-9 pr-8 appearance-none cursor-pointer"
-          >
-            <option value="All">All Status</option>
-            <option value="Draft">Draft</option>
-            <option value="Under Review">In Progress</option>
-            <option value="Revision Required">Needs Update</option>
-            <option value="Approved">Ready</option>
-            <option value="Published">Published</option>
-          </select>
-        </div>
+        {/* Status filter removed for personal planner */}
       </div>
 
       <div className="card overflow-hidden p-0">
@@ -197,13 +160,13 @@ export default function ApprovalWorkflow() {
                   <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-academic-text-muted">Teacher</th>
                 )}
                 <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-academic-text-muted">Last Session</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-academic-text-muted">Status</th>
+                {/* Status column removed for personal planner */}
                 <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-academic-text-muted">Notes</th>
                 <th className="text-right px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-academic-text-muted">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-academic-border">
-              {filtered.map(({ course, status, submittedAt, notes }) => (
+              {filtered.map(({ course, submittedAt, notes }) => (
                 <tr key={course.id} className="hover:bg-academic-bg/50 transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
@@ -231,11 +194,7 @@ export default function ApprovalWorkflow() {
                       'Not started'
                     )}
                   </td>
-                  <td className="px-5 py-4">
-                    <span className={`badge text-[10px] ${getStatusBadge(status)}`}>
-                      {status === 'Under Review' ? 'In Progress' : status}
-                    </span>
-                  </td>
+                  {/* Status cell removed */}
                   <td className="px-5 py-4 text-academic-text-muted max-w-xs truncate">
                     {notes || 'No notes'}
                   </td>

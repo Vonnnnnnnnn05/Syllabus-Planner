@@ -7,6 +7,7 @@ import Courses from './pages/Courses'
 import SyllabusPlanner from './pages/SyllabusPlanner'
 import CLOManagement from './pages/CLOManagement'
 import GradingSystem from './pages/GradingSystem'
+import Policies from './pages/Policies'
 import AICompanion from './pages/AICompanion'
 import ApprovalWorkflow from './pages/ApprovalWorkflow'
 import UserManagement from './pages/UserManagement'
@@ -33,6 +34,7 @@ function App() {
           <Route path="/syllabus-planner/:courseId?" element={<SyllabusPlanner />} />
           <Route path="/clos/:courseId?" element={<CLOManagement />} />
           <Route path="/grading/:courseId?" element={<GradingSystem />} />
+          <Route path="/policies/:courseId?" element={<Policies />} />
           <Route path="/ai-companion" element={<AICompanion />} />
           <Route path="/approvals" element={<ApprovalWorkflow />} />
           <Route path="/users" element={<UserManagement />} />

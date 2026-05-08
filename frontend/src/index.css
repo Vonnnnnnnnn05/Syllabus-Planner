@@ -123,3 +123,38 @@
     text-wrap: balance;
   }
 }
+
+@media print {
+  body {
+    background: white;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .print\\:hidden {
+    display: none !important;
+  }
+  
+  .print\\:shadow-none {
+    box-shadow: none !important;
+  }
+  
+  .print\\:border-none {
+    border: none !important;
+  }
+  
+  /* Ensure proper page breaks */
+  section {
+    page-break-inside: avoid;
+  }
+  
+  .card {
+    page-break-inside: avoid;
+  }
+  
+  /* Better text rendering */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

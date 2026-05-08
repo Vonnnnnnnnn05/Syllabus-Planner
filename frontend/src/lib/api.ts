@@ -78,6 +78,13 @@ export const syllabusApi = {
   update: (id: string, data: Record<string, unknown>) => api.put(`/syllabi/${id}`, data),
 }
 
+export const requirementPolicyApi = {
+  list: (courseId?: string) => api.get('/requirement-policies', { params: courseId ? { course_id: courseId } : undefined }),
+  create: (data: Record<string, unknown>) => api.post('/requirement-policies', data),
+  update: (id: string, data: Record<string, unknown>) => api.put(`/requirement-policies/${id}`, data),
+  delete: (id: string) => api.delete(`/requirement-policies/${id}`),
+}
+
 export const departmentApi = {
   list: () => api.get('/departments'),
 }

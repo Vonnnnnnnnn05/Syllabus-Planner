@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\GradingSystemController;
 use App\Http\Controllers\Api\SyllabusController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RequirementPolicyController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -23,6 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('weekly-plans', WeeklyPlanController::class);
         Route::apiResource('grading-systems', GradingSystemController::class);
         Route::apiResource('syllabi', SyllabusController::class);
+        Route::apiResource('requirement-policies', RequirementPolicyController::class);
         Route::get('/departments', [DepartmentController::class, 'index']);
         Route::get('/users', [UserController::class, 'index']);
         Route::get('/teachers', [UserController::class, 'teachers']);
