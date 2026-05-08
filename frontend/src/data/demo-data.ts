@@ -42,14 +42,14 @@ export interface Syllabus {
 }
 
 export const demoUsers: User[] = [
-  { id: 'u1', fullName: 'Mark Jovic A. Daday', email: 'mjdaday@sku.edu.ph', role: 'Teacher', department: 'Information Technology', avatar: 'MD', status: 'Active' },
-  { id: 'u2', fullName: 'Rubin B. Cerilo', email: 'rbc@sku.edu.ph', role: 'Program Chair', department: 'Information Technology', avatar: 'RC', status: 'Active' },
-  { id: 'u3', fullName: 'Elbren O. Antonio', email: 'eoa@sku.edu.ph', role: 'Dean', department: 'Information Technology', avatar: 'EA', status: 'Active' },
-  { id: 'u4', fullName: 'Von Esson Vergara', email: 'vev@sku.edu.ph', role: 'Admin', department: 'Information Technology', avatar: 'VV', status: 'Active' },
-  { id: 'u5', fullName: 'Maria Santos', email: 'ms@sku.edu.ph', role: 'Teacher', department: 'Computer Science', avatar: 'MS', status: 'Active' },
-  { id: 'u6', fullName: 'Juan Cruz', email: 'jc@sku.edu.ph', role: 'Department Head', department: 'Information Technology', avatar: 'JC', status: 'Active' },
-  { id: 'u7', fullName: 'Ana Reyes', email: 'ar@sku.edu.ph', role: 'Coordinator', department: 'Information Technology', avatar: 'AR', status: 'Active' },
-  { id: 'u8', fullName: 'Pedro Garcia', email: 'pg@sku.edu.ph', role: 'Teacher', department: 'Computer Science', avatar: 'PG', status: 'Inactive' },
+  { id: 'u1', fullName: 'Mark Jovic A. Daday', email: 'teacher@gmail.com', role: 'Teacher', department: 'Information Technology', avatar: 'MD', status: 'Active' },
+  { id: 'u2', fullName: 'Rubin B. Cerilo', email: 'programchair@gmail.com', role: 'Program Chair', department: 'Information Technology', avatar: 'RC', status: 'Active' },
+  { id: 'u3', fullName: 'Elbren O. Antonio', email: 'dean@gmail.com', role: 'Dean', department: 'Information Technology', avatar: 'EA', status: 'Active' },
+  { id: 'u4', fullName: 'Von Esson Vergara', email: 'admin@gmail.com', role: 'Admin', department: 'Information Technology', avatar: 'VV', status: 'Active' },
+  { id: 'u5', fullName: 'Maria Santos', email: 'teacher2@gmail.com', role: 'Teacher', department: 'Computer Science', avatar: 'MS', status: 'Active' },
+  { id: 'u6', fullName: 'Juan Cruz', email: 'departmenthead@gmail.com', role: 'Department Head', department: 'Information Technology', avatar: 'JC', status: 'Active' },
+  { id: 'u7', fullName: 'Ana Reyes', email: 'coordinator@gmail.com', role: 'Coordinator', department: 'Information Technology', avatar: 'AR', status: 'Active' },
+  { id: 'u8', fullName: 'Pedro Garcia', email: 'inactive.teacher@gmail.com', role: 'Teacher', department: 'Computer Science', avatar: 'PG', status: 'Inactive' },
 ]
 
 export const demoCourses: Course[] = [

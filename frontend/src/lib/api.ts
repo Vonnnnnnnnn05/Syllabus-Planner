@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
 
 const api = axios.create({
   baseURL: API_URL,
@@ -36,8 +36,7 @@ api.interceptors.response.use(
 export default api
 
 export const authApi = {
-  login: (email: string, password: string) =>
-    api.post('/login', { email, password }),
+  login: (email: string, password: string) => api.post('/login', { email, password }),
   logout: () => api.post('/logout'),
   me: () => api.get('/me'),
 }

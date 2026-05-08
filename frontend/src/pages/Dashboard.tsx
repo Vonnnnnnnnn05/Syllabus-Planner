@@ -12,8 +12,12 @@ import {
 } from 'lucide-react'
 import { demoCourses, demoSyllabi, demoUsers } from '../data/demo-data'
 import { formatDate } from '../lib/utils'
+import { useAuth } from '../context/AuthContext'
 
 export default function Dashboard() {
+  const { user } = useAuth()
+  const firstName = user?.fullName?.split(' ')[0] || 'there'
+
   const stats = [
     {
       label: 'Total Courses',
@@ -54,7 +58,7 @@ export default function Dashboard() {
       <div>
         <h1 className="page-header">Dashboard</h1>
         <p className="page-subtitle">
-          Welcome back, Mark Jovic. Here's what's happening in your academic workspace.
+          Welcome back, {firstName}. Here's what's happening in your academic workspace.
         </p>
       </div>
 

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import axios from 'axios'
 import { authApi } from '../lib/api'
 
 interface User {
@@ -7,12 +8,18 @@ interface User {
   email: string
   role: string
   avatar: string
+  department?: string
+}
+
+interface LoginResult {
+  success: boolean
+  error?: string
 }
 
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<LoginResult>
   logout: () => void
 }
 
@@ -27,6 +34,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = !!user
 
   useEffect(() => {
+    const token = localStorage.getItem('syllabus_token')
+    if (!token) {
+      setUser(null)
+      return
+    }
+
+    authApi.me()
+      .then(({ data }) => setUser(data))
+      .catch(() => {
+        setUser(null)
+        localStorage.removeItem('syllabus_token')
+        localStorage.removeItem('syllabus_auth_user')
+      })
+  }, [])
+
+  useEffect(() => {
     if (user) {
       localStorage.setItem('syllabus_auth_user', JSON.stringify(user))
     } else {
@@ -34,14 +57,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user])
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const getLoginErrorMessage = (error: unknown): string => {
+    if (!axios.isAxiosError(error)) {
+      return 'Something went wrong while signing in.'
+    }
+
+    if (!error.response) {
+      return 'Cannot connect to the authentication server. Make sure Laravel is running on port 8000.'
+    }
+
+    if (error.response.status === 422 || error.response.status === 401) {
+      return error.response.data?.message || 'Invalid email or password.'
+    }
+
+    if (error.response.status === 419) {
+      return 'Login is being blocked by CSRF middleware. Restart Laravel and try again.'
+    }
+
+    if (error.response.status >= 500) {
+      return 'The authentication server had an error. Check the Laravel logs.'
+    }
+
+    return error.response.data?.message || 'Unable to sign in. Please try again.'
+  }
+
+  const login = async (email: string, password: string): Promise<LoginResult> => {
     try {
       const { data } = await authApi.login(email, password)
       localStorage.setItem('syllabus_token', data.token)
       setUser(data.user)
-      return true
-    } catch {
-      return false
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: getLoginErrorMessage(error) }
     }
   }
 

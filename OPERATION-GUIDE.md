@@ -47,7 +47,7 @@ php artisan migrate:fresh --seed
 
 This creates all tables and populates them with:
 - 5 departments
-- 8 demo users (faculty, dean, admin, etc.)
+- 8 main users (faculty, dean, admin, etc.)
 - IPT2 course with full 17-week syllabus, CLOs, grading, rubrics, references
 - 4 additional demo courses
 
@@ -92,18 +92,18 @@ npm run build
 
 ---
 
-## 3. Demo Login Credentials
+## 3. Main Login Credentials
 
 | Email | Password | Role |
 |-------|----------|------|
-| `mjdaday@sku.edu.ph` | `password` | Teacher |
-| `rbc@sku.edu.ph` | `password` | Program Chair |
-| `eoa@sku.edu.ph` | `password` | Dean |
-| `vev@sku.edu.ph` | `password` | Admin |
-| `ms@sku.edu.ph` | `password` | Teacher |
-| `jc@sku.edu.ph` | `password` | Department Head |
-| `ar@sku.edu.ph` | `password` | Coordinator |
-| `pg@sku.edu.ph` | `password` | Teacher (Inactive) |
+| `admin@gmail.com` | `password` | Admin |
+| `teacher@gmail.com` | `password` | Teacher |
+| `programchair@gmail.com` | `password` | Program Chair |
+| `dean@gmail.com` | `password` | Dean |
+| `teacher2@gmail.com` | `password` | Teacher |
+| `departmenthead@gmail.com` | `password` | Department Head |
+| `coordinator@gmail.com` | `password` | Coordinator |
+| `inactive.teacher@gmail.com` | `password` | Teacher (Inactive) |
 
 ---
 

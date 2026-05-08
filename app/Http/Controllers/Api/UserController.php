@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\Concerns\HandlesRoleAccess;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -9,9 +10,18 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    use HandlesRoleAccess;
+
     public function index(Request $request)
     {
+        $authUser = $request->user();
         $query = User::with('department');
+
+        if ($this->isTeacher($authUser)) {
+            $query->where('id', $authUser->id);
+        } elseif ($this->isDepartmentScopedRole($authUser)) {
+            $query->where('department_id', $authUser->department_id);
+        }
 
         if ($request->has('search')) {
             $search = $request->search;
@@ -31,6 +41,8 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        abort_unless($this->canManageUsers($request->user()), 403, 'You are not allowed to create users.');
+
         $validated = $request->validate([
             'name' => 'required|string',
             'full_name' => 'nullable|string',
@@ -51,6 +63,9 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
+        $authUser = $request->user();
+        abort_unless($this->canManageUsers($authUser) || (int) $authUser->id === (int) $id, 403, 'You are not allowed to update this user.');
+
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
@@ -63,6 +78,10 @@ class UserController extends Controller
             'status' => 'sometimes|string|max:20',
         ]);
 
+        if (! $this->canManageUsers($authUser)) {
+            unset($validated['role'], $validated['department_id'], $validated['status']);
+        }
+
         if ($request->has('password')) {
             $validated['password'] = Hash::make($request->password);
         }
@@ -74,6 +93,8 @@ class UserController extends Controller
 
     public function destroy($id)
     {
+        abort_unless($this->canManageUsers(request()->user()), 403, 'You are not allowed to delete users.');
+
         $user = User::findOrFail($id);
         $user->delete();
 

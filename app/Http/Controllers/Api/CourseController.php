@@ -2,15 +2,25 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\Concerns\HandlesRoleAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
 {
+    use HandlesRoleAccess;
+
     public function index(Request $request)
     {
+        $user = $request->user();
         $query = Course::with('department', 'user');
+
+        if ($this->isTeacher($user)) {
+            $query->where('user_id', $user->id);
+        } elseif ($this->isDepartmentScopedRole($user)) {
+            $query->where('department_id', $user->department_id);
+        }
 
         if ($request->has('search')) {
             $search = $request->search;
@@ -47,11 +57,15 @@ class CourseController extends Controller
             'rubrics',
         ])->findOrFail($id);
 
+        abort_unless($this->canAccessCourse(request()->user(), $course), 403, 'You are not allowed to view this course.');
+
         return response()->json($course);
     }
 
     public function store(Request $request)
     {
+        $user = $request->user();
+
         $validated = $request->validate([
             'course_code' => 'required|string|max:20',
             'course_title' => 'required|string',
@@ -64,7 +78,11 @@ class CourseController extends Controller
             'status' => 'string|max:20',
         ]);
 
-        $validated['user_id'] = auth()->id() ?? 1;
+        $validated['user_id'] = $user->id;
+
+        if ($this->isTeacher($user) || $this->isDepartmentScopedRole($user)) {
+            $validated['department_id'] = $user->department_id;
+        }
 
         $course = Course::create($validated);
 
@@ -73,7 +91,10 @@ class CourseController extends Controller
 
     public function update(Request $request, $id)
     {
+        $user = $request->user();
         $course = Course::findOrFail($id);
+
+        abort_unless($this->canAccessCourse($user, $course), 403, 'You are not allowed to update this course.');
 
         $validated = $request->validate([
             'course_code' => 'sometimes|string|max:20',
@@ -87,6 +108,10 @@ class CourseController extends Controller
             'status' => 'string|max:20',
         ]);
 
+        if ($this->isTeacher($user) || $this->isDepartmentScopedRole($user)) {
+            unset($validated['department_id']);
+        }
+
         $course->update($validated);
 
         return response()->json($course);
@@ -94,7 +119,11 @@ class CourseController extends Controller
 
     public function destroy($id)
     {
+        $user = request()->user();
         $course = Course::findOrFail($id);
+
+        abort_unless($this->canAccessCourse($user, $course), 403, 'You are not allowed to delete this course.');
+
         $course->delete();
 
         return response()->json(['message' => 'Course deleted']);

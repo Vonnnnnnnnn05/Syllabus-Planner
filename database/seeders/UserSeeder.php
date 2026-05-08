@@ -12,9 +12,10 @@ class UserSeeder extends Seeder
     {
         $users = [
             [
+                'id' => 1,
                 'name' => 'Mark Jovic A. Daday',
                 'full_name' => 'Mark Jovic A. Daday',
-                'email' => 'mjdaday@sku.edu.ph',
+                'email' => 'teacher@gmail.com',
                 'password' => Hash::make('password'),
                 'department_id' => 1,
                 'role' => 'Teacher',
@@ -22,9 +23,10 @@ class UserSeeder extends Seeder
                 'status' => 'Active',
             ],
             [
+                'id' => 2,
                 'name' => 'Rubin B. Cerilo',
                 'full_name' => 'Rubin B. Cerilo',
-                'email' => 'rbc@sku.edu.ph',
+                'email' => 'programchair@gmail.com',
                 'password' => Hash::make('password'),
                 'department_id' => 1,
                 'role' => 'Program Chair',
@@ -32,9 +34,10 @@ class UserSeeder extends Seeder
                 'status' => 'Active',
             ],
             [
+                'id' => 3,
                 'name' => 'Elbren O. Antonio',
                 'full_name' => 'Elbren O. Antonio',
-                'email' => 'eoa@sku.edu.ph',
+                'email' => 'dean@gmail.com',
                 'password' => Hash::make('password'),
                 'department_id' => 1,
                 'role' => 'Dean',
@@ -42,9 +45,10 @@ class UserSeeder extends Seeder
                 'status' => 'Active',
             ],
             [
+                'id' => 4,
                 'name' => 'Von Esson Vergara',
                 'full_name' => 'Von Esson Vergara',
-                'email' => 'vev@sku.edu.ph',
+                'email' => 'admin@gmail.com',
                 'password' => Hash::make('password'),
                 'department_id' => 1,
                 'role' => 'Admin',
@@ -52,9 +56,10 @@ class UserSeeder extends Seeder
                 'status' => 'Active',
             ],
             [
+                'id' => 5,
                 'name' => 'Maria Santos',
                 'full_name' => 'Maria Santos',
-                'email' => 'ms@sku.edu.ph',
+                'email' => 'teacher2@gmail.com',
                 'password' => Hash::make('password'),
                 'department_id' => 2,
                 'role' => 'Teacher',
@@ -62,9 +67,10 @@ class UserSeeder extends Seeder
                 'status' => 'Active',
             ],
             [
+                'id' => 6,
                 'name' => 'Juan Cruz',
                 'full_name' => 'Juan Cruz',
-                'email' => 'jc@sku.edu.ph',
+                'email' => 'departmenthead@gmail.com',
                 'password' => Hash::make('password'),
                 'department_id' => 1,
                 'role' => 'Department Head',
@@ -72,9 +78,10 @@ class UserSeeder extends Seeder
                 'status' => 'Active',
             ],
             [
+                'id' => 7,
                 'name' => 'Ana Reyes',
                 'full_name' => 'Ana Reyes',
-                'email' => 'ar@sku.edu.ph',
+                'email' => 'coordinator@gmail.com',
                 'password' => Hash::make('password'),
                 'department_id' => 1,
                 'role' => 'Coordinator',
@@ -82,9 +89,10 @@ class UserSeeder extends Seeder
                 'status' => 'Active',
             ],
             [
+                'id' => 8,
                 'name' => 'Pedro Garcia',
                 'full_name' => 'Pedro Garcia',
-                'email' => 'pg@sku.edu.ph',
+                'email' => 'inactive.teacher@gmail.com',
                 'password' => Hash::make('password'),
                 'department_id' => 2,
                 'role' => 'Teacher',
@@ -94,7 +102,7 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $user) {
-            User::create($user);
+            User::updateOrCreate(['id' => $user['id']], $user);
         }
     }
 }

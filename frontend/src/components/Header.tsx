@@ -1,10 +1,21 @@
 import { Menu, Bell, Search } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 interface HeaderProps {
   onMenuClick: () => void
 }
 
 export default function Header({ onMenuClick }: HeaderProps) {
+  const { user } = useAuth()
+  const displayName = user?.fullName || 'Guest'
+  const displayMeta = user?.department || user?.role || 'User'
+  const avatar = user?.avatar || displayName
+    .split(' ')
+    .map((name) => name[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
   return (
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-academic-border">
       <div className="flex items-center justify-between h-16 px-6 lg:px-8">
@@ -32,11 +43,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </button>
           <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-academic-border">
             <div className="w-8 h-8 rounded-full bg-academic-primary flex items-center justify-center text-xs font-bold text-white">
-              MD
+              {avatar}
             </div>
             <div className="hidden md:block">
-              <p className="text-sm font-medium text-academic-text">Mark Jovic</p>
-              <p className="text-xs text-academic-text-muted">IT Department</p>
+              <p className="max-w-40 truncate text-sm font-medium text-academic-text">{displayName}</p>
+              <p className="max-w-40 truncate text-xs text-academic-text-muted">{displayMeta}</p>
             </div>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
 export default function Login() {
-  const [email, setEmail] = useState('mjdaday@sku.edu.ph')
+  const [email, setEmail] = useState('teacher@gmail.com')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -19,13 +19,13 @@ export default function Login() {
       return
     }
     setLoading(true)
-    const success = await login(email, password)
+    const result = await login(email, password)
     setLoading(false)
-    if (success) {
+    if (result.success) {
       toast.success('Welcome back!')
       navigate('/')
     } else {
-      toast.error('Invalid email or password')
+      toast.error(result.error || 'Unable to sign in. Please try again.')
     }
   }
 
@@ -62,7 +62,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field pl-10"
-                  placeholder="you@sku.edu.ph"
+                  placeholder="you@gmail.com"
                   required
                 />
               </div>
@@ -118,17 +118,19 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Demo Accounts */}
+          {/* Main Accounts */}
           <div className="mt-6 pt-5 border-t border-academic-border">
             <p className="text-xs font-semibold uppercase tracking-wider text-academic-text-muted mb-3 text-center">
-              Demo Accounts
+              Main Accounts
             </p>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { email: 'mjdaday@sku.edu.ph', role: 'Teacher' },
-                { email: 'rbc@sku.edu.ph', role: 'Program Chair' },
-                { email: 'eoa@sku.edu.ph', role: 'Dean' },
-                { email: 'vev@sku.edu.ph', role: 'Admin' },
+                { email: 'admin@gmail.com', role: 'Admin' },
+                { email: 'teacher@gmail.com', role: 'Teacher' },
+                { email: 'programchair@gmail.com', role: 'Program Chair' },
+                { email: 'dean@gmail.com', role: 'Dean' },
+                { email: 'departmenthead@gmail.com', role: 'Department Head' },
+                { email: 'coordinator@gmail.com', role: 'Coordinator' },
               ].map((acc) => (
                 <button
                   key={acc.email}
